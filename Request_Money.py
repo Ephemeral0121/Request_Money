@@ -245,7 +245,7 @@ class Request_Money(QWidget):
         self.applyStyleSheet()
         self.setGeometry(300, 300, 700, 1150)
         self.setLayout(mainLayout)
-        self.setWindowTitle('조정보수청구_2023')
+        self.setWindowTitle('조정보수청구')
 
     def applyStyleSheet(self):
         self.setStyleSheet("""
@@ -401,7 +401,7 @@ class Request_Money(QWidget):
         self.dueDateLabel = QLabel("납기일:")
         self.dueDateEdit = QDateEdit()
         self.dueDateEdit.setCalendarPopup(True)  # 캘린더 팝업 활성화
-        self.dueDateEdit.setDate(QDate(2024, 3, 31))  # 디폴트 날짜 설정
+        self.dueDateEdit.setDate(QDate(datetime.now().year, 3, 31))  # 디폴트 날짜 설정
         self.dueDateEdit.dateChanged.connect(self.calculateRemuneration)  # 날짜 변경 시 계산 메소드 호출
         dueDateLayout = QHBoxLayout()
         dueDateLayout.addWidget(self.dueDateLabel)
@@ -656,7 +656,7 @@ class Request_Money(QWidget):
         costProgression = int(self.costProgressionLabel.text().split(': ')[1])  # 소수점 제거
 
         template_path = self.resource_path('양식.xlsx')
-        output_path = f'{company_name}2023년귀속 조정보수청구서.xlsx'
+        output_path = f'{company_name}{datetime.now().year}년귀속 조정보수청구서.xlsx'
 
         # 파일이 이미 존재하는지 확인
         if os.path.exists(output_path):
@@ -760,8 +760,8 @@ class Request_Money(QWidget):
             if not self.validateInputs():
                 return
 
-            excel_file_path = f'{company_name}2023년귀속 조정보수청구서.xlsx'
-            pdf_file_path = f'{company_name}2023년귀속 조정보수청구서.pdf'
+            excel_file_path = f'{company_name}{datetime.now().year}년귀속 조정보수청구서.xlsx'
+            pdf_file_path = f'{company_name}{datetime.now().year}년귀속 조정보수청구서.pdf'
 
             # 엑셀 파일이 존재하지 않으면 생성
             if not os.path.exists(excel_file_path):
