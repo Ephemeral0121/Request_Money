@@ -231,6 +231,7 @@ class Request_Money(QWidget):
         self.individualButton.toggled.connect(self.calculateRemuneration)
         self.typeAButton.toggled.connect(self.calculateRemuneration)
         self.typeBButton.toggled.connect(self.calculateRemuneration)
+        self.typeCButton.toggled.connect(self.calculateRemuneration)
         self.createExcelButton.clicked.connect(self.create_excel_file)
 
         self.corporateButton.setChecked(True)
@@ -353,12 +354,16 @@ class Request_Money(QWidget):
         self.calculationTypeGroup = QButtonGroup(self)
         self.typeAButton = QRadioButton('A유형')
         self.typeBButton = QRadioButton('B유형')
+        self.typeCButton = QRadioButton('C유형')
         self.calculationTypeGroup.addButton(self.typeAButton)
         self.calculationTypeGroup.addButton(self.typeBButton)
+        self.calculationTypeGroup.addButton(self.typeCButton)
         self.typeAButton.toggled.connect(self.calculateRemuneration)
         self.typeBButton.toggled.connect(self.calculateRemuneration)
+        self.typeCButton.toggled.connect(self.calculateRemuneration)
         calculationTypeLayout.addWidget(self.typeAButton)
         calculationTypeLayout.addWidget(self.typeBButton)
+        calculationTypeLayout.addWidget(self.typeCButton)
         calculationTypeBox.setLayout(calculationTypeLayout)
         self.typeBButton.setChecked(True)
         mainLayout.addWidget(calculationTypeBox)
@@ -488,7 +493,9 @@ class Request_Money(QWidget):
 
         # 기본 설정
         entityType = '법인' if self.corporateButton.isChecked() else '개인'
-        calculationType = 'B유형' if self.typeBButton.isChecked() else 'A유형'
+        if self.typeBButton.isChecked(): calculationType = 'B유형'
+        elif self.typeCButton.isChecked(): calculationType = 'C유형'
+        else: calculationType = 'A유형'
 
         income = float(self.incomeEdit.text())
         remuneration = self.calculateBasicRemuneration(income, entityType, calculationType)
@@ -539,7 +546,7 @@ class Request_Money(QWidget):
 
     def calculateBasicRemuneration(self, income, entityType, calculationType):
         if calculationType == 'A유형':
-            # A유형 개인
+            # A유형
             if entityType == '개인':
                 base_amount, rate, min = 300000, 0, 0
                 if income >= 1e8:
@@ -560,7 +567,6 @@ class Request_Money(QWidget):
                     base_amount, rate, min = 11400000, 0.00016, 500e8
                 if income >= 1000e8:
                     base_amount, rate, min = 19400000, 0.00014, 1000e8
-
             else:  # A유형 법인
                 base_amount, rate, min = 400000, 0, 0
                 if income >= 1e8:
@@ -581,7 +587,61 @@ class Request_Money(QWidget):
                     base_amount, rate, min = 11500000, 0.00016, 500e8
                 if income >= 1000e8:
                     base_amount, rate, min = 19500000, 0.00014, 1000e8
-        else:  # B유형 개인
+
+        elif calculationType == 'B유형':
+            # B유형: A유형과 C유형의 중간값을 공식으로 산출
+            if entityType == '개인':
+                base_amount, rate, min = 300000, 0, 0
+                if income >= 1e8:
+                    # (300000,0.0015)와 (300000,0.002) → (300000,0.00175)
+                    base_amount, rate, min = 300000, 0.00175, 1e8
+                if income >= 3e8:
+                    # (600000,0.001)와 (700000,0.0016) → (650000,0.0013)
+                    base_amount, rate, min = 650000, 0.0013, 3e8
+                if income >= 5e8:
+                    # (800000,0.0008)와 (1020000,0.0014) → (910000,0.0011)
+                    base_amount, rate, min = 910000, 0.0011, 5e8
+                if income >= 10e8:
+                    # (1200000,0.0006)와 (1720000,0.0012) → (1460000,0.0009)
+                    base_amount, rate, min = 1460000, 0.0009, 10e8
+                if income >= 30e8:
+                    # (2400000,0.0004)와 (4120000,0.001) → (3260000,0.0007)
+                    base_amount, rate, min = 3260000, 0.0007, 30e8
+                if income >= 50e8:
+                    # (3200000,0.0002)와 (6120000,0.0008) → (4660000,0.0005)
+                    base_amount, rate, min = 4660000, 0.0005, 50e8
+                if income >= 100e8:
+                    # (4200000,0.00018)와 (10120000,0.0005) → (7160000,0.00034)
+                    base_amount, rate, min = 7160000, 0.00034, 100e8
+                if income >= 500e8:
+                    # (11400000,0.00016)와 (30120000,0.0002) → (20760000,0.00018)
+                    base_amount, rate, min = 20760000, 0.00018, 500e8
+                if income >= 1000e8:
+                    # (19400000,0.00014)와 (40120000,0.00008) → (29780000,0.00011)
+                    base_amount, rate, min = 29780000, 0.00011, 1000e8
+            else:  # B유형 법인
+                base_amount, rate, min = 400000, 0, 0
+                if income >= 1e8:
+                    base_amount, rate, min = 400000, 0.00175, 1e8
+                if income >= 3e8:
+                    base_amount, rate, min = 750000, 0.0013, 3e8
+                if income >= 5e8:
+                    base_amount, rate, min = 1010000, 0.0011, 5e8
+                if income >= 10e8:
+                    base_amount, rate, min = 1560000, 0.0009, 10e8
+                if income >= 30e8:
+                    base_amount, rate, min = 3360000, 0.0007, 30e8
+                if income >= 50e8:
+                    base_amount, rate, min = 4760000, 0.0005, 50e8
+                if income >= 100e8:
+                    base_amount, rate, min = 7260000, 0.00034, 100e8
+                if income >= 500e8:
+                    base_amount, rate, min = 20860000, 0.00018, 500e8
+                if income >= 1000e8:
+                    base_amount, rate, min = 29860000, 0.00011, 1000e8
+
+        elif calculationType == 'C유형':
+            # C유형: 기존의 B유형 로직을 그대로 이동
             if entityType == '개인':
                 base_amount, rate, min = 300000, 0, 0
                 if income >= 1e8:
@@ -602,8 +662,7 @@ class Request_Money(QWidget):
                     base_amount, rate, min = 30120000, 0.0002, 500e8
                 if income >= 1000e8:
                     base_amount, rate, min = 40120000, 0.00008, 1000e8
-
-            else:  # B유형 법인
+            else:  # C유형 법인
                 base_amount, rate, min = 400000, 0, 0
                 if income >= 1e8:
                     base_amount, rate, min = 400000, 0.002, 1e8
@@ -623,7 +682,7 @@ class Request_Money(QWidget):
                     base_amount, rate, min = 30220000, 0.0002, 500e8
                 if income >= 1000e8:
                     base_amount, rate, min = 40220000, 0.00008, 1000e8
-        
+
         if rate >= 0:
             excess_income = income - min
             remuneration = base_amount + excess_income * rate
@@ -633,6 +692,7 @@ class Request_Money(QWidget):
         remuneration = (remuneration // 10000) * 10000
 
         return remuneration
+
     
     
     def create_excel_file(self):
@@ -656,7 +716,7 @@ class Request_Money(QWidget):
         costProgression = int(self.costProgressionLabel.text().split(': ')[1])  # 소수점 제거
 
         template_path = self.resource_path('양식.xlsx')
-        output_path = f'{company_name}{datetime.now().year}년귀속 조정보수청구서.xlsx'
+        output_path = f'{company_name} {datetime.now().year}년귀속 조정보수청구서.xlsx'
 
         # 파일이 이미 존재하는지 확인
         if os.path.exists(output_path):
@@ -760,8 +820,8 @@ class Request_Money(QWidget):
             if not self.validateInputs():
                 return
 
-            excel_file_path = f'{company_name}{datetime.now().year}년귀속 조정보수청구서.xlsx'
-            pdf_file_path = f'{company_name}{datetime.now().year}년귀속 조정보수청구서.pdf'
+            excel_file_path = f'{company_name} {datetime.now().year}년귀속 조정보수청구서.xlsx'
+            pdf_file_path = f'{company_name} {datetime.now().year}년귀속 조정보수청구서.pdf'
 
             # 엑셀 파일이 존재하지 않으면 생성
             if not os.path.exists(excel_file_path):
